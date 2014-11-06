@@ -38,22 +38,17 @@ public class IO {
 				}
 				data.add(lineData);
 			}
-			System.out.println(nodeList);
-			System.out.println(data);
+			// System.out.println(nodeList);
+			// System.out.println(data);
 			input.close();
 			s.close();
-			return new Data(nodeList, data);
-		} catch (NullPointerException e) {
 
+			Data temp = new Data(nodeList, data);
+			return temp;
+		} catch (NullPointerException e) {
+			e.printStackTrace();
 		}
 		return new Data();
 	}
 
-	public static void main(String[] args) {
-		try {
-			readFile("data/CPTNoMissingData-d1.txt");
-		} catch (IOException e) {
-
-		}
-	}
 }
