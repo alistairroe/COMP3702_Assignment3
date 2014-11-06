@@ -35,7 +35,7 @@ public class Solver {
 							}
 							;
 						}
-						System.out.print("Set " + s + ": ");
+						System.out.print("Given " + s + ", " + n.name + ": ");
 						Probability p = n.P.get(s);
 						p.numOccurences++;
 						if (state.get(i) == 1) {
