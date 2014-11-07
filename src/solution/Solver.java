@@ -110,4 +110,12 @@ public class Solver {
 		System.out.println(logSum);
 		System.out.println(product);
 	}
+
+	public static Set<String> createSet(String... strings) {
+		Set<String> s = new HashSet<String>();
+		for (int i = 0; i < strings.length; i++) {
+			s.add(strings[i]);
+		}
+		return s;
+	}
 }
