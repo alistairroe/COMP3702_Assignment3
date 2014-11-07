@@ -24,4 +24,11 @@ public class Probability {
 	public String toString() {
 		return String.valueOf(getProb());
 	}
+
+	public void update(boolean b) {
+		if (b) {
+			numTrue++;
+		}
+		numOccurences++;
+	}
 }

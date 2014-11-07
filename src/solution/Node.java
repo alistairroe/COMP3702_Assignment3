@@ -10,8 +10,7 @@ import java.util.Set;
 public class Node {
 	String name;
 	List<String> parents;
-	int numOccurences;
-	int numTrue;
+	Probability prob = new Probability(0);
 	Map<Set<String>, Probability> P = new HashMap<Set<String>, Probability>();
 
 	public Node(String name, List<String> parents) {
@@ -25,7 +24,7 @@ public class Node {
 				s.add(parent);
 				setList.add(s);
 				Set<String> ns = new HashSet<String>();
-				ns.add("n" + parent);
+				ns.add("~" + parent);
 				setList.add(ns);
 			} else {
 				List<Set<String>> newSetList = new ArrayList<Set<String>>();
@@ -34,7 +33,7 @@ public class Node {
 					s2.addAll(s);
 					s2.add(parent);
 					newSetList.add(s2);
-					s.add("n" + parent);
+					s.add("~" + parent);
 					newSetList.add(s);
 				}
 				setList = newSetList;

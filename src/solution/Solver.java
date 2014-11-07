@@ -22,7 +22,9 @@ public class Solver {
 				for (List<Integer> state : data.data) {
 					if (n.parents.size() == 0) {
 						if (state.get(i) == 1) {
-							n.numTrue++;
+							n.prob.update(true);
+						} else {
+							n.prob.update(false);
 						}
 					} else {
 						Set<String> s = new HashSet<String>();
@@ -31,19 +33,20 @@ public class Solver {
 							if (state.get(index) == 1) {
 								s.add(parent);
 							} else {
-								s.add("n" + parent);
+								s.add("~" + parent);
 							}
-							;
 						}
 						System.out.print("Given " + s + ", " + n.name + ": ");
 						Probability p = n.P.get(s);
 						p.numOccurences++;
 						if (state.get(i) == 1) {
+							n.prob.update(true);
 							p.numTrue++;
 							System.out.print("1");
 							System.out.println(" | " + p.numTrue + " "
 									+ p.numOccurences);
 						} else {
+							n.prob.update(false);
 							System.out.print("0");
 							System.out.println(" | " + p.numTrue + " "
 									+ p.numOccurences);
@@ -53,13 +56,58 @@ public class Solver {
 			}
 
 			for (Node n : data.nodeList) {
-				System.out.print(n.name + " ");
+				System.out.print(n.name + " " + n.prob + " ");
 				System.out.println(n.P);
 			}
+			likelihood(data);
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
+	}
+
+	public static void likelihood(Data data) {
+		double logSum = 0;
+		double product = 1;
+		for (List<Integer> l : data.data) {
+			double entryProduct = 1;
+			double entryLogSum = 0;
+			for (int i = 0; i < data.nodeList.size(); i++) {
+				Node n = data.nodeList.get(i);
+				Set<String> s = new HashSet<String>();
+				for (String parent : n.parents) {
+					int index = data.nodeNameList.indexOf(parent);
+					if (l.get(index) == 1) {
+						s.add(parent);
+					} else {
+						s.add("~" + parent);
+					}
+				}
+				if (n.parents.size() != 0) {
+					if (l.get(i) == 1) {
+						logSum += Math.log(n.P.get(s).getProb());
+						entryProduct *= n.P.get(s).getProb();
+
+					} else {
+						logSum += Math.log((1 - n.P.get(s).getProb()));
+						entryProduct *= (1 - n.P.get(s).getProb());
+					}
+				} else {
+					if (l.get(i) == 1) {
+						logSum += Math.log(n.prob.getProb());
+						entryProduct *= n.prob.getProb();
+					} else {
+						logSum += Math.log((1 - n.prob.getProb()));
+						entryProduct *= (1 - n.prob.getProb());
+					}
+
+				}
+			}
+			product *= entryProduct;
+			logSum += entryLogSum;
+		}
+		System.out.println(logSum);
+		System.out.println(product);
 	}
 }
