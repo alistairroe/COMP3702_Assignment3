@@ -17,8 +17,13 @@ public class Probability {
 	}
 
 	public double getProb() {
-		prob = ((double) numTrue) / numOccurences;
-		return prob;
+		if (numOccurences == 0) {
+			prob = 0.5;
+			return prob;
+		} else {
+			prob = ((double) numTrue) / numOccurences;
+			return prob;
+		}
 	}
 
 	public String toString() {
