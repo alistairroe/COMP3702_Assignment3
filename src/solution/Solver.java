@@ -1,6 +1,8 @@
 package solution;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -19,7 +21,7 @@ public class Solver {
 			// data = IO.readFile("data/CPTNoMissingData-d3.txt");
 			// Task1(data);
 			// likelihood(data);
-			Data data2 = IO.readPart2("data/noMissingData-d1.txt");
+			Data data2 = IO.readPart2("data/noMissingData-d2.txt");
 			Task2(data2);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -35,7 +37,6 @@ public class Solver {
 		for (int i = 0; i < data.nodeList.size(); i++) {
 			// for(Node n : data.nodeList) {
 			Node n = data.nodeList.get(i);
-			System.out.println("Node " + n.name);
 			for (List<Integer> state : data.data) {
 				if (n.parents.size() == 0) {
 					if (state.get(i) == 1) {
@@ -53,20 +54,16 @@ public class Solver {
 							s.add("~" + parent);
 						}
 					}
-					System.out.print("Given " + s + ", " + n.name + ": ");
+
 					Probability p = n.P.get(s);
 					p.numOccurences++;
 					if (state.get(i) == 1) {
 						n.prob.update(true);
 						p.numTrue++;
-						System.out.print("1");
-						System.out.println(" | " + p.numTrue + " "
-								+ p.numOccurences);
+
 					} else {
 						n.prob.update(false);
-						System.out.print("0");
-						System.out.println(" | " + p.numTrue + " "
-								+ p.numOccurences);
+
 					}
 				}
 			}
@@ -98,9 +95,6 @@ public class Solver {
 								p = new Probability();
 							}
 							if (state.get(i) == 1) {
-								System.out.print(state);
-								System.out.println(data.nodeList.get(j).name
-										+ " + " + data.nodeNameList.get(i));
 								p.update(true);
 							} else {
 								p.update(false);
@@ -113,9 +107,6 @@ public class Solver {
 								p = new Probability();
 							}
 							if (state.get(i) == 1) {
-								System.out.print(state);
-								System.out.println(data.nodeList.get(j).name
-										+ " + " + data.nodeNameList.get(i));
 								p.update(true);
 							} else {
 								p.update(false);
@@ -135,8 +126,6 @@ public class Solver {
 				// being 0 or 1. This just gets them, hardcoded. They come out
 				// the same way regardless of which order you give the
 				// arguments (for case 0), which is a good sign.
-				System.out.println("Doing " + data.nodeList.get(i).name
-						+ " and " + data.nodeList.get(j).name);
 				sum += PMI(data.nodeList.get(i), data.nodeList.get(j), 0);
 				sum += PMI(data.nodeList.get(i), data.nodeList.get(j), 1);
 				sum += PMI(data.nodeList.get(j), data.nodeList.get(i), 1);
@@ -147,14 +136,75 @@ public class Solver {
 		}
 		System.out.println(MI);
 		List<Entry<Set<String>, Double>> list = sortMap(MI);
-		System.out.println(list);
-		for (Node n : data.nodeList) {
-			System.out.print(n.name + " " + n.prob + " ");
-			System.out.println(n.P);
+		Map<String, List<String>> connectionMap = new HashMap<String, List<String>>();
+		List<List<Integer>> sparseConnectionIndexList = new ArrayList<List<Integer>>();
+		for (Entry<Set<String>, Double> e : list) {
+			List<String> nodes = new ArrayList<String>(e.getKey());
+			if (!searchMap(connectionMap, nodes.get(0), nodes.get(1))) {
+				if (connectionMap.get(nodes.get(0)) == null) {
+					connectionMap.put(nodes.get(0), new ArrayList<String>());
+				}
+				connectionMap.get(nodes.get(0)).add(nodes.get(1));
+				if (connectionMap.get(nodes.get(1)) == null) {
+					connectionMap.put(nodes.get(1), new ArrayList<String>());
+				}
+				connectionMap.get(nodes.get(1)).add(nodes.get(0));
+				List<Integer> temp = new ArrayList<Integer>();
+				temp.add(data.nodeNameList.indexOf(nodes.get(0)));
+				temp.add(data.nodeNameList.indexOf(nodes.get(1)));
+				sparseConnectionIndexList.add(temp);
+			}
+
 		}
+		System.out.println("ConnectionList: " + sparseConnectionIndexList);
+		int n = (int) Math.pow(2, sparseConnectionIndexList.size());
+		double bestScore = -999999;
+		String bestStructure = "";
+		for (int i = 0; i < n; i++) {
+			Data data2 = new Data(data);
+			for (int l = 0; l < data2.nodeList.size(); l++) {
+				data2.nodeList.get(l).parents = new ArrayList<String>();
+			}
+			String j = Integer.toBinaryString(i);
+			int length = sparseConnectionIndexList.size() - j.length();
+			char[] padArray = new char[length];
+			Arrays.fill(padArray, '0');
+			String padString = new String(padArray);
+			String num = padString + j;
+			for (int k = sparseConnectionIndexList.size() - 1; k > -1; k--) {
+				List<Integer> connection = sparseConnectionIndexList.get(k);
+				int x = (int) num.charAt(k);
+				if (x == 49) {
+					data2.nodeList.get(connection.get(0)).parents
+							.add(data2.nodeList.get(connection.get(1)).name);
+				} else if (x == 48) {
+					data2.nodeList.get(connection.get(1)).parents
+							.add(data2.nodeList.get(connection.get(0)).name);
+				}
+			}
+			int x = 0;
+			for (int k = 0; k < data2.nodeList.size(); k++) {
+				Node newNode = new Node(data2.nodeList.get(k).name,
+						data2.nodeList.get(k).parents);
+				data2.nodeList.set(k, newNode);
+				x++;
+			}
+			Task1(data2);
+			double temp = likelihood(data2);
+			System.out.println("");
+			if (temp > bestScore) {
+				bestScore = temp;
+				bestStructure = num;
+			} else if (temp == bestScore) {
+				bestStructure = bestStructure + "," + num;
+			}
+
+		}
+		System.out.println(bestStructure);
+
 	}
 
-	public static void likelihood(Data data) {
+	public static double likelihood(Data data) {
 		double logSum = 0;
 		double product = 1;
 		for (List<Integer> l : data.data) {
@@ -195,8 +245,7 @@ public class Solver {
 			logSum += entryLogSum;
 		}
 		System.out.println(logSum);
-		System.out.println(product);
-		System.out.println(Math.pow(Math.E, logSum));
+		return logSum;
 	}
 
 	public static Set<String> createSet(String... strings) {
@@ -205,6 +254,34 @@ public class Solver {
 			s.add(strings[i]);
 		}
 		return s;
+	}
+
+	public static boolean searchMap(Map<String, List<String>> map, String A,
+			String B) {
+		List<String> exploredNodes = new ArrayList<String>();
+		List<String> queue = new ArrayList<String>();
+		queue.add(A);
+		List<String> connectedNodes;
+		while (queue.size() > 0) {
+			connectedNodes = map.get(queue.remove(0));
+			if (connectedNodes == null) {
+				return false;
+			}
+			for (String s : connectedNodes) {
+				if (s == B) {
+					return true;
+				} else {
+					if (!exploredNodes.contains(s)) {
+						exploredNodes.add(s);
+						if (!queue.contains(s)) {
+							queue.add(s);
+
+						}
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	public static double PMI(Node node1, Node node2, int code) {

@@ -26,4 +26,15 @@ public class Data {
 		nodeList = new ArrayList<Node>();
 		data = new ArrayList<List<Integer>>();
 	}
+
+	public Data(Data data) {
+		this.nodeList = new ArrayList<Node>();
+		for (Node n : data.nodeList) {
+			this.nodeList
+					.add(new Node(n.name, new ArrayList<String>(n.parents)));
+		}
+		this.nodeNameList = new ArrayList<String>(data.nodeNameList);
+		this.nodeMap = new HashMap<String, Node>(data.nodeMap);
+		this.data = data.data;
+	}
 }
