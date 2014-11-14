@@ -38,8 +38,8 @@ public class Node {
 				}
 				setList = newSetList;
 			}
-			System.out.print(name + " ");
-			System.out.println(setList);
+			// System.out.print(name + " ");
+			// System.out.println(setList);
 		}
 		for (Set<String> s : setList) {
 			P.put(s, new Probability(0));

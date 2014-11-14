@@ -2,11 +2,14 @@ package solution;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 public class IO {
 
@@ -51,6 +54,42 @@ public class IO {
 		return new Data();
 	}
 
+	public static void writeTask1(Data data, String filename)
+			throws IOException {
+		String ls = System.getProperty("line.separator");
+		FileWriter output = new FileWriter(filename);
+		for (Node n : data.nodeList) {
+			String s = new String();
+			s += n.name + " ";
+			int numCombos = (int) Math.pow(2, n.parents.size());
+			for (String parent : n.parents) {
+				s += parent + " ";
+			}
+			output.write(s.substring(0, s.length() - 1) + ls);
+			s = "";
+			if (numCombos > 1) {
+				for (int i = 0; i < numCombos; i++) {
+					String num = Solver.createBinaryString(n.parents.size(), i);
+					Set<String> set = new HashSet<String>();
+					for (int j = 0; j < n.parents.size(); j++) {
+						if ((int) num.charAt(j) == 48) {
+							set.add("~" + n.parents.get(j));
+						} else {
+							set.add(n.parents.get(j));
+						}
+					}
+					s += n.P.get(set) + " ";
+				}
+				output.write(s.substring(0, s.length() - 1));
+			} else {
+				output.write(String.valueOf(n.prob.getProb()));
+			}
+			output.write(ls);
+		}
+		output.write(String.valueOf(data.logLikelihood));
+		output.close();
+	}
+
 	public static Data readPart2(String filename) throws IOException {
 		BufferedReader input = new BufferedReader(new FileReader(filename));
 		String line;
@@ -92,15 +131,15 @@ public class IO {
 		return new Data();
 	}
 
-	public static void main(String[] args) {
-		try {
-			Data data = readPart2("data/noMissingData-d1.txt");
-			System.out.println(data.nodeList);
-			System.out.println(data.data);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
+	// public static void main(String[] args) {
+	// try {
+	// Data data = readPart2("data/noMissingData-d1.txt");
+	// System.out.println(data.nodeList);
+	// System.out.println(data.data);
+	// } catch (IOException e) {
+	// e.printStackTrace();
+	// }
+	//
+	// }
 
 }

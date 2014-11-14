@@ -11,6 +11,7 @@ public class Data {
 	public List<String> nodeNameList = new ArrayList<String>();
 	public List<List<Integer>> data;
 	public Map<String, Node> nodeMap;
+	public double logLikelihood;
 
 	public Data(List<Node> nodeList, List<List<Integer>> data) {
 		this.nodeList = nodeList;
@@ -36,5 +37,6 @@ public class Data {
 		this.nodeNameList = new ArrayList<String>(data.nodeNameList);
 		this.nodeMap = new HashMap<String, Node>(data.nodeMap);
 		this.data = data.data;
+		this.logLikelihood = data.logLikelihood;
 	}
 }

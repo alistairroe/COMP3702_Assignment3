@@ -18,9 +18,10 @@ public class Solver {
 	public static void main(String[] args) {
 		Data data;
 		try {
-			// data = IO.readFile("data/CPTNoMissingData-d3.txt");
+			// data = IO.readFile("data/CPTNoMissingData-d1.txt");
 			// Task1(data);
-			// likelihood(data);
+			// data.logLikelihood = likelihood(data);
+			// IO.writeTask1(data, "cpt-d1.txt");
 			Data data2 = IO.readPart2("data/noMissingData-d2.txt");
 			Task2(data2);
 		} catch (IOException e) {
@@ -69,10 +70,10 @@ public class Solver {
 			}
 		}
 
-		for (Node n : data.nodeList) {
+		/*for (Node n : data.nodeList) {
 			System.out.print(n.name + " " + n.prob + " ");
 			System.out.println(n.P);
-		}
+		}*/
 
 	}
 
@@ -136,7 +137,9 @@ public class Solver {
 		}
 		System.out.println(MI);
 		List<Entry<Set<String>, Double>> list = sortMap(MI);
-		Map<String, List<String>> connectionMap = new HashMap<String, List<String>>();
+		Data newdata = greedyStructure(data, list);
+		System.out.println(newdata.nodeList);
+		/*Map<String, List<String>> connectionMap = new HashMap<String, List<String>>();
 		List<List<Integer>> sparseConnectionIndexList = new ArrayList<List<Integer>>();
 		for (Entry<Set<String>, Double> e : list) {
 			List<String> nodes = new ArrayList<String>(e.getKey());
@@ -165,12 +168,7 @@ public class Solver {
 			for (int l = 0; l < data2.nodeList.size(); l++) {
 				data2.nodeList.get(l).parents = new ArrayList<String>();
 			}
-			String j = Integer.toBinaryString(i);
-			int length = sparseConnectionIndexList.size() - j.length();
-			char[] padArray = new char[length];
-			Arrays.fill(padArray, '0');
-			String padString = new String(padArray);
-			String num = padString + j;
+			String num = createBinaryString(sparseConnectionIndexList.size(), i);
 			for (int k = sparseConnectionIndexList.size() - 1; k > -1; k--) {
 				List<Integer> connection = sparseConnectionIndexList.get(k);
 				int x = (int) num.charAt(k);
@@ -200,7 +198,7 @@ public class Solver {
 			}
 
 		}
-		System.out.println(bestStructure);
+		System.out.println(bestStructure); */
 
 	}
 
@@ -244,7 +242,7 @@ public class Solver {
 			product *= entryProduct;
 			logSum += entryLogSum;
 		}
-		System.out.println(logSum);
+		// System.out.println(logSum);
 		return logSum;
 	}
 
@@ -256,8 +254,79 @@ public class Solver {
 		return s;
 	}
 
+	public static Data greedyStructure(Data data,
+			List<Entry<Set<String>, Double>> list) {
+		double C = 1;
+		double bestScore = -99999999;
+		Map<String, List<String>> connectionMap = new HashMap<String, List<String>>();
+		Data datamaster = new Data(data);
+		for (Entry<Set<String>, Double> e : list) {
+			List<String> nodes = new ArrayList<String>(e.getKey());
+			Data data2 = new Data(datamaster);
+			Data data3 = new Data(datamaster);
+			if (!searchMap(connectionMap, nodes.get(0), nodes.get(1))) {
+				int indexParent = data2.nodeNameList.indexOf(nodes.get(1));
+				data2.nodeList.get(indexParent).parents.add(nodes.get(0));
+				data2.nodeList.set(indexParent,
+						new Node(data2.nodeList.get(indexParent).name,
+								data2.nodeList.get(indexParent).parents));
+				Task1(data2);
+				data2.logLikelihood = likelihood(data2);
+			}
+			if (!searchMap(connectionMap, nodes.get(1), nodes.get(0))) {
+				int indexParent = data3.nodeNameList.indexOf(nodes.get(0));
+				data3.nodeList.get(indexParent).parents.add(nodes.get(1));
+				data3.nodeList.set(indexParent,
+						new Node(data3.nodeList.get(indexParent).name,
+								data3.nodeList.get(indexParent).parents));
+				Task1(data3);
+				data3.logLikelihood = likelihood(data3);
+			}
+			int num1 = 0;
+			int num2 = 0;
+			for (Node n : data2.nodeList) {
+				num1 += n.P.size();
+			}
+			for (Node n : data3.nodeList) {
+				num2 += n.P.size();
+			}
+			double score1 = data2.logLikelihood - C * num1;
+			double score2 = data3.logLikelihood - C * num2;
+			System.out.println("Best: " + bestScore + "; Scores: " + score1
+					+ " vs " + score2);
+			if (score1 >= score2) {
+				if (score1 > bestScore) {
+					datamaster = data2;
+					if (connectionMap.get(nodes.get(1)) == null) {
+						connectionMap
+								.put(nodes.get(1), new ArrayList<String>());
+					}
+					connectionMap.get(nodes.get(1)).add(nodes.get(0));
+					bestScore = score1;
+				} else {
+					return datamaster;
+				}
+			} else {
+				if (score2 > bestScore) {
+					datamaster = data3;
+					if (connectionMap.get(nodes.get(0)) == null) {
+						connectionMap
+								.put(nodes.get(0), new ArrayList<String>());
+					}
+					connectionMap.get(nodes.get(0)).add(nodes.get(1));
+					bestScore = score2;
+				} else {
+					return datamaster;
+				}
+
+			}
+		}
+		return datamaster;
+	}
+
 	public static boolean searchMap(Map<String, List<String>> map, String A,
 			String B) {
+		// Returns true if nodes are connected; false if not
 		List<String> exploredNodes = new ArrayList<String>();
 		List<String> queue = new ArrayList<String>();
 		queue.add(A);
@@ -320,6 +389,17 @@ public class Solver {
 			}
 		});
 		return list;
+	}
+
+	public static String createBinaryString(int length, int n) {
+		System.out.println(length + " " + n);
+		String j = Integer.toBinaryString(n);
+		int padLength = length - j.length();
+		char[] padArray = new char[padLength];
+		Arrays.fill(padArray, '0');
+		String padString = new String(padArray);
+		String num = padString + j;
+		return num;
 	}
 
 }
