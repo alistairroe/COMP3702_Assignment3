@@ -54,6 +54,54 @@ public class IO {
 		return new Data();
 	}
 
+	public static Data readFile3(String filename) throws IOException {
+		BufferedReader input = new BufferedReader(new FileReader(filename));
+		String line;
+		Scanner s;
+		List<Node> nodeList = new ArrayList<Node>();
+		List<List<Integer>> data = new ArrayList<List<Integer>>();
+		try {
+			line = input.readLine();
+			s = new Scanner(line);
+			int numNodes = s.nextInt();
+			int numData = s.nextInt();
+			line = input.readLine();
+			String[] temp1 = line.split(" ");
+			List<String> nodes = new ArrayList<String>();
+			nodes.addAll(Arrays.asList(temp1));
+			for (int i = 0; i < numNodes; i++) {
+				String name = nodes.get(i);
+				nodeList.add(new Node(name, new ArrayList<String>()));
+			}
+			int count = 11;
+			for (int i = 0; i < numData; i++) {
+				line = input.readLine();
+				List<Integer> lineData = new ArrayList<Integer>();
+				String[] temp = line.split(" ");
+				for (int j = 0; j < numNodes; j++) {
+					try {
+						lineData.add(Integer.valueOf(temp[j]));
+					} catch (NumberFormatException e) {
+						lineData.add(count);
+						count++;
+					}
+
+				}
+				data.add(lineData);
+			}
+			// System.out.println(nodeList);
+			// System.out.println(data);
+			input.close();
+			s.close();
+
+			Data temp = new Data(nodeList, data);
+			return temp;
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+		}
+		return new Data();
+	}
+
 	public static void writeTask1(Data data, String filename)
 			throws IOException {
 		String ls = System.getProperty("line.separator");
@@ -131,15 +179,60 @@ public class IO {
 		return new Data();
 	}
 
-	// public static void main(String[] args) {
-	// try {
-	// Data data = readPart2("data/noMissingData-d1.txt");
-	// System.out.println(data.nodeList);
-	// System.out.println(data.data);
-	// } catch (IOException e) {
-	// e.printStackTrace();
-	// }
-	//
-	// }
+	public static void writeTask2(Data data, String filename)
+			throws IOException {
+		String ls = System.getProperty("line.separator");
+		FileWriter output = new FileWriter(filename);
+
+		for (Node n : data.nodeList) {
+			String s = "";
+			s += (n.name + " ");
+			for (String parent : n.parents) {
+				s += parent + " ";
+			}
+			output.write(s.substring(0, s.length() - 1) + ls);
+		}
+		for (Node n : data.nodeList) {
+			String s = new String();
+			s += n.name + " ";
+			int numCombos = (int) Math.pow(2, n.parents.size());
+			for (String parent : n.parents) {
+				s += parent + " ";
+			}
+			output.write(s.substring(0, s.length() - 1) + ls);
+			s = "";
+			if (numCombos > 1) {
+				for (int i = 0; i < numCombos; i++) {
+					String num = Solver.createBinaryString(n.parents.size(), i);
+					Set<String> set = new HashSet<String>();
+					for (int j = 0; j < n.parents.size(); j++) {
+						if ((int) num.charAt(j) == 48) {
+							set.add("~" + n.parents.get(j));
+						} else {
+							set.add(n.parents.get(j));
+						}
+					}
+					s += n.P.get(set) + " ";
+				}
+				output.write(s.substring(0, s.length() - 1));
+			} else {
+				output.write(String.valueOf(n.prob.getProb()));
+			}
+			output.write(ls);
+		}
+		output.write(String.valueOf(data.logLikelihood) + " " + data.score);
+		output.close();
+	}
+
+	public static void main(String[] args) {
+		try {
+			Data data = readFile3("data/someMissingData-d1.txt");
+			System.out.println(data.nodeList);
+			System.out.println(data.data);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
 
 }

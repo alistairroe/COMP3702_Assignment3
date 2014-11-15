@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 
 public class Solver {
@@ -22,8 +23,11 @@ public class Solver {
 			// Task1(data);
 			// data.logLikelihood = likelihood(data);
 			// IO.writeTask1(data, "cpt-d1.txt");
-			Data data2 = IO.readPart2("data/noMissingData-d2.txt");
-			Task2(data2);
+			// Data data2 = IO.readPart2("data/noMissingData-d1.txt");
+			// data2 = Task2(data2);
+			// IO.writeTask2(data2, "bn-d1.txt");
+			data = IO.readFile3("data/someMissingData-d3.txt");
+			Task3(data);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -77,7 +81,7 @@ public class Solver {
 
 	}
 
-	public static void Task2(Data data) {
+	public static Data Task2(Data data) {
 		for (int i = 0; i < data.nodeList.size(); i++) {
 			for (List<Integer> state : data.data) {
 				if (state.get(i) == 1) {
@@ -137,69 +141,73 @@ public class Solver {
 		}
 		System.out.println(MI);
 		List<Entry<Set<String>, Double>> list = sortMap(MI);
-		Data newdata = greedyStructure(data, list);
+		// Data newdata = greedyStructure(data, list);
+		// System.out.println(newdata.nodeList);
+		Data newdata = greedyKruskalGraph(data, list);
 		System.out.println(newdata.nodeList);
-		/*Map<String, List<String>> connectionMap = new HashMap<String, List<String>>();
-		List<List<Integer>> sparseConnectionIndexList = new ArrayList<List<Integer>>();
-		for (Entry<Set<String>, Double> e : list) {
-			List<String> nodes = new ArrayList<String>(e.getKey());
-			if (!searchMap(connectionMap, nodes.get(0), nodes.get(1))) {
-				if (connectionMap.get(nodes.get(0)) == null) {
-					connectionMap.put(nodes.get(0), new ArrayList<String>());
-				}
-				connectionMap.get(nodes.get(0)).add(nodes.get(1));
-				if (connectionMap.get(nodes.get(1)) == null) {
-					connectionMap.put(nodes.get(1), new ArrayList<String>());
-				}
-				connectionMap.get(nodes.get(1)).add(nodes.get(0));
-				List<Integer> temp = new ArrayList<Integer>();
-				temp.add(data.nodeNameList.indexOf(nodes.get(0)));
-				temp.add(data.nodeNameList.indexOf(nodes.get(1)));
-				sparseConnectionIndexList.add(temp);
-			}
+		return newdata;
 
+	}
+
+	public static void Task3(Data data) {
+		Data data2 = new Data(data);
+		Random random = new Random();
+		List<List<Integer>> fileData = data2.data;
+		List<List<Integer>> newData = new ArrayList<List<Integer>>();
+		List<List<Integer>> missingLocations = new ArrayList<List<Integer>>();
+		int counter = 0;
+		for (List<Integer> state : fileData) {
+			boolean flag = false;
+			for (int i = 0; i < state.size(); i++) {
+				if (state.get(i) > 1) {
+					flag = true;
+					List<Integer> temp = new ArrayList<Integer>();
+					temp.add(counter);
+					temp.add(i);
+					missingLocations.add(temp);
+				}
+			}
+			if (!flag) {
+				newData.add(state);
+			}
+			counter++;
 		}
-		System.out.println("ConnectionList: " + sparseConnectionIndexList);
-		int n = (int) Math.pow(2, sparseConnectionIndexList.size());
-		double bestScore = -999999;
-		String bestStructure = "";
-		for (int i = 0; i < n; i++) {
-			Data data2 = new Data(data);
-			for (int l = 0; l < data2.nodeList.size(); l++) {
-				data2.nodeList.get(l).parents = new ArrayList<String>();
-			}
-			String num = createBinaryString(sparseConnectionIndexList.size(), i);
-			for (int k = sparseConnectionIndexList.size() - 1; k > -1; k--) {
-				List<Integer> connection = sparseConnectionIndexList.get(k);
-				int x = (int) num.charAt(k);
-				if (x == 49) {
-					data2.nodeList.get(connection.get(0)).parents
-							.add(data2.nodeList.get(connection.get(1)).name);
-				} else if (x == 48) {
-					data2.nodeList.get(connection.get(1)).parents
-							.add(data2.nodeList.get(connection.get(0)).name);
+		data2.data = newData;
+		System.out.println(data.data.size() + " " + data2.data.size());
+		Task1(data2);
+		data2 = Task2(data2);
+
+		for (List<Integer> location : missingLocations) {
+			List<Integer> state = data.data.get(location.get(0));
+			Set<String> set = new HashSet<String>();
+			Node n = data2.nodeList.get(location.get(1));
+			List<String> parents = n.parents;
+			double prob = 0;
+			if (parents.size() == 0) {
+				prob = n.prob.getProb();
+				System.out.println(n + " " + prob);
+			} else {
+				for (String parent : parents) {
+					int index = data.nodeNameList.indexOf(parent);
+					if (state.get(index) == 1) {
+						set.add(parent);
+					} else {
+						set.add("~" + parent);
+					}
+
 				}
-			}
-			int x = 0;
-			for (int k = 0; k < data2.nodeList.size(); k++) {
-				Node newNode = new Node(data2.nodeList.get(k).name,
-						data2.nodeList.get(k).parents);
-				data2.nodeList.set(k, newNode);
-				x++;
-			}
-			Task1(data2);
-			double temp = likelihood(data2);
-			System.out.println("");
-			if (temp > bestScore) {
-				bestScore = temp;
-				bestStructure = num;
-			} else if (temp == bestScore) {
-				bestStructure = bestStructure + "," + num;
-			}
 
+				prob = n.P.get(set).getProb();
+				System.out.println(n + " " + set + " " + prob);
+			}
+			double rand = random.nextDouble();
+			if (prob > rand) {
+				state.set(location.get(1), 1);
+			} else {
+				state.set(location.get(1), 0);
+			}
 		}
-		System.out.println(bestStructure); */
-
+		// System.out.println(data.data);
 	}
 
 	public static double likelihood(Data data) {
@@ -257,10 +265,11 @@ public class Solver {
 	public static Data greedyStructure(Data data,
 			List<Entry<Set<String>, Double>> list) {
 		double C = 1;
-		double bestScore = -99999999;
 		Map<String, List<String>> connectionMap = new HashMap<String, List<String>>();
 		Data datamaster = new Data(data);
+		datamaster.score = -99999999;
 		for (Entry<Set<String>, Double> e : list) {
+			System.out.println(datamaster.score);
 			List<String> nodes = new ArrayList<String>(e.getKey());
 			Data data2 = new Data(datamaster);
 			Data data3 = new Data(datamaster);
@@ -292,29 +301,29 @@ public class Solver {
 			}
 			double score1 = data2.logLikelihood - C * num1;
 			double score2 = data3.logLikelihood - C * num2;
-			System.out.println("Best: " + bestScore + "; Scores: " + score1
-					+ " vs " + score2);
+			System.out.println("Best: " + datamaster.score + "; Scores: "
+					+ score1 + " vs " + score2);
 			if (score1 >= score2) {
-				if (score1 > bestScore) {
+				if (score1 > datamaster.score) {
 					datamaster = data2;
 					if (connectionMap.get(nodes.get(1)) == null) {
 						connectionMap
 								.put(nodes.get(1), new ArrayList<String>());
 					}
 					connectionMap.get(nodes.get(1)).add(nodes.get(0));
-					bestScore = score1;
+					datamaster.score = score1;
 				} else {
 					return datamaster;
 				}
 			} else {
-				if (score2 > bestScore) {
+				if (score2 > datamaster.score) {
 					datamaster = data3;
 					if (connectionMap.get(nodes.get(0)) == null) {
 						connectionMap
 								.put(nodes.get(0), new ArrayList<String>());
 					}
 					connectionMap.get(nodes.get(0)).add(nodes.get(1));
-					bestScore = score2;
+					datamaster.score = score2;
 				} else {
 					return datamaster;
 				}
@@ -378,6 +387,72 @@ public class Solver {
 		return result;
 	}
 
+	public static Data greedyKruskalGraph(Data data,
+			List<Entry<Set<String>, Double>> list) {
+		Map<String, List<String>> connectionMap = new HashMap<String, List<String>>();
+		List<List<Integer>> sparseConnectionIndexList = new ArrayList<List<Integer>>();
+		for (Entry<Set<String>, Double> e : list) {
+			List<String> nodes = new ArrayList<String>(e.getKey());
+			if (!searchMap(connectionMap, nodes.get(0), nodes.get(1))) {
+				if (connectionMap.get(nodes.get(0)) == null) {
+					connectionMap.put(nodes.get(0), new ArrayList<String>());
+				}
+				connectionMap.get(nodes.get(0)).add(nodes.get(1));
+				if (connectionMap.get(nodes.get(1)) == null) {
+					connectionMap.put(nodes.get(1), new ArrayList<String>());
+				}
+				connectionMap.get(nodes.get(1)).add(nodes.get(0));
+				List<Integer> temp = new ArrayList<Integer>();
+				temp.add(data.nodeNameList.indexOf(nodes.get(0)));
+				temp.add(data.nodeNameList.indexOf(nodes.get(1)));
+				sparseConnectionIndexList.add(temp);
+			}
+
+		}
+		System.out.println("ConnectionList: " + sparseConnectionIndexList);
+		int n = (int) Math.pow(2, sparseConnectionIndexList.size());
+		double bestScore = -999999;
+		String bestStructure = "";
+		Data data2 = new Data();
+		for (int i = 0; i < n; i++) {
+			data2 = new Data(data);
+			for (int l = 0; l < data2.nodeList.size(); l++) {
+				data2.nodeList.get(l).parents = new ArrayList<String>();
+			}
+			String num = createBinaryString(sparseConnectionIndexList.size(), i);
+			for (int k = sparseConnectionIndexList.size() - 1; k > -1; k--) {
+				List<Integer> connection = sparseConnectionIndexList.get(k);
+				int x = (int) num.charAt(k);
+				if (x == 48) {
+					data2.nodeList.get(connection.get(0)).parents
+							.add(data2.nodeList.get(connection.get(1)).name);
+				} else if (x == 49) {
+					data2.nodeList.get(connection.get(1)).parents
+							.add(data2.nodeList.get(connection.get(0)).name);
+				}
+			}
+			int x = 0;
+			for (int k = 0; k < data2.nodeList.size(); k++) {
+				Node newNode = new Node(data2.nodeList.get(k).name,
+						data2.nodeList.get(k).parents);
+				data2.nodeList.set(k, newNode);
+				x++;
+			}
+			Task1(data2);
+			double temp = likelihood(data2);
+			// System.out.println("");
+			if (temp > bestScore) {
+				bestScore = temp;
+				bestStructure = num;
+			} else if (temp == bestScore) {
+				bestStructure = bestStructure + "," + num;
+			}
+
+		}
+		System.out.println(bestStructure);
+		return data2;
+	}
+
 	public static List<Entry<Set<String>, Double>> sortMap(
 			Map<Set<String>, Double> map) {
 		List<Entry<Set<String>, Double>> list = new LinkedList<Entry<Set<String>, Double>>(
@@ -392,7 +467,7 @@ public class Solver {
 	}
 
 	public static String createBinaryString(int length, int n) {
-		System.out.println(length + " " + n);
+		// System.out.println(length + " " + n);
 		String j = Integer.toBinaryString(n);
 		int padLength = length - j.length();
 		char[] padArray = new char[padLength];
