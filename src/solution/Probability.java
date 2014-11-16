@@ -21,7 +21,7 @@ public class Probability {
 			prob = 0.5;
 			return prob;
 		} else {
-			prob = ((double) numTrue) / numOccurences;
+			prob = ((double) numTrue) / (numOccurences);
 			return prob;
 		}
 	}
