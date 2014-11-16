@@ -25,12 +25,13 @@ public class Solver {
 			// data.logLikelihood = likelihood(data);
 			// System.out.println(data.logLikelihood);
 			// IO.writeTask1(data, "cpt-d1.txt");
-			Data data2 = IO.readPart2("data/noMissingData-d3.txt");
-			data2 = initialiseChain(data2);
-			data2 = Task2(data2);
-			// IO.writeTask2(data2, "bn-d4.txt");
-			// data = IO.readFile3("data/someMissingData-d4.txt");
-			// Task3(data);
+			// Data data2 = IO.readPart2("data/noMissingData-d3.txt");
+			// data2 = initialiseChain(data2);
+			// /data2 = Task2(data2);
+			// IO.writeTask2(data2, "bn-d3.txt");
+			data = IO.readFile3("data/someMissingData-d1.txt");
+			data = Task3(data);
+			IO.writeTask3(data, "bn-someMissingData-d1.txt");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -147,14 +148,14 @@ public class Solver {
 		System.out.println(list);
 		// Data newdata = greedyStructure(data, list);
 		// System.out.println(newdata.nodeList);
-		// Data newdata = greedyKruskalGraph(data, list);
-		Data newdata = greedyBruteForce(data);
+		Data newdata = greedyKruskalGraph(data, list);
+		// Data newdata = greedyBruteForce(data);
 		System.out.println(newdata.nodeList);
 		return newdata;
 
 	}
 
-	public static void Task3(Data data) {
+	public static Data Task3(Data data) {
 		Data data2 = new Data(data);
 		Random random = new Random();
 		List<List<Integer>> fileData = data2.data;
@@ -183,7 +184,8 @@ public class Solver {
 		for (int i = 0; i < 5; i++) {
 			data2 = new Data(data2);
 			data2 = Task2(data2);
-
+			data2.fillProbabilities = new ArrayList<List<String>>();
+			counter = 0;
 			for (List<Integer> location : missingLocations) {
 				List<Integer> state = data.data.get(location.get(0));
 				Set<String> set = new HashSet<String>();
@@ -207,8 +209,13 @@ public class Solver {
 					prob = n.P.get(set).getProb();
 					System.out.print(n + " " + set + " " + prob + " ");
 				}
+				System.out.println(data.data);
 				double rand = random.nextDouble();
-
+				List<String> fillProb = new ArrayList<String>();
+				fillProb.add("H" + counter);
+				fillProb.add(String.valueOf(prob));
+				// System.out.print(fillProb);
+				data2.fillProbabilities.add(fillProb);
 				// CHANGE THIS 0.5 to rand to fill using weighted random
 				// generator
 				if (prob > 0.5) {
@@ -218,10 +225,13 @@ public class Solver {
 					state.set(location.get(1), 0);
 					System.out.println("Filled with 0");
 				}
+				counter++;
 			}
 			data2.data = data.data;
 		}
-		// System.out.println(data.data);
+		return data2;
+		// System.out.println(data.nodeList.get(1));
+		// System.out.println(data2.nodeList);
 	}
 
 	public static double likelihood(Data data) {
@@ -526,6 +536,15 @@ public class Solver {
 		}
 		System.out.println("Final nodelist: " + data3.nodeList);
 		Task1(data3);
+		data3.logLikelihood = likelihood(data3);
+		int num1 = 0;
+		for (Node n1 : data3.nodeList) {
+			num1 += n1.P.size();
+			if (n1.P.size() == 0) {
+				num1 += 1;
+			}
+		}
+		data3.score = data3.logLikelihood - C * num1;
 		return data3;
 	}
 
@@ -534,7 +553,7 @@ public class Solver {
 		double bestAddScore = -9999999;
 		double bestRemoveScore = -9999999;
 		double bestSwapScore = -9999999;
-		double C = 10;
+		double C = 0.7;
 		// double bestSwitchLikelihood = -9999999;
 		Map<String, List<String>> connectionMap = new HashMap<String, List<String>>();
 		for (Node n : data2.nodeList) {

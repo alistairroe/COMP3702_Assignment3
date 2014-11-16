@@ -224,6 +224,54 @@ public class IO {
 		output.close();
 	}
 
+	public static void writeTask3(Data data, String filename)
+			throws IOException {
+		String ls = System.getProperty("line.separator");
+		FileWriter output = new FileWriter(filename);
+
+		for (Node n : data.nodeList) {
+			String s = "";
+			s += (n.name + " ");
+			for (String parent : n.parents) {
+				s += parent + " ";
+			}
+			output.write(s.substring(0, s.length() - 1) + ls);
+		}
+		for (Node n : data.nodeList) {
+			String s = new String();
+			s += n.name + " ";
+			int numCombos = (int) Math.pow(2, n.parents.size());
+			for (String parent : n.parents) {
+				s += parent + " ";
+			}
+			output.write(s.substring(0, s.length() - 1) + ls);
+			s = "";
+			if (numCombos > 1) {
+				for (int i = 0; i < numCombos; i++) {
+					String num = Solver.createBinaryString(n.parents.size(), i);
+					Set<String> set = new HashSet<String>();
+					for (int j = 0; j < n.parents.size(); j++) {
+						if ((int) num.charAt(j) == 48) {
+							set.add("~" + n.parents.get(j));
+						} else {
+							set.add(n.parents.get(j));
+						}
+					}
+					s += n.P.get(set) + " ";
+				}
+				output.write(s.substring(0, s.length() - 1));
+			} else {
+				output.write(String.valueOf(n.prob.getProb()));
+			}
+			output.write(ls);
+		}
+		output.write(String.valueOf(data.logLikelihood) + " " + data.score);
+		for (List<String> item : data.fillProbabilities) {
+			output.write(ls + item.get(0) + " " + item.get(1));
+		}
+		output.close();
+	}
+
 	public static void main(String[] args) {
 		try {
 			Data data = readFile3("data/someMissingData-d1.txt");

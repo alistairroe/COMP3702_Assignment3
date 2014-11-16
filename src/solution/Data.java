@@ -13,6 +13,7 @@ public class Data {
 	public Map<String, Node> nodeMap;
 	public double logLikelihood;
 	public double score;
+	public List<List<String>> fillProbabilities;
 
 	public Data(List<Node> nodeList, List<List<Integer>> data) {
 		this.nodeList = nodeList;
