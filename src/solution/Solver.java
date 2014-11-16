@@ -26,7 +26,7 @@ public class Solver {
 			// Data data2 = IO.readPart2("data/noMissingData-d1.txt");
 			// data2 = Task2(data2);
 			// IO.writeTask2(data2, "bn-d1.txt");
-			data = IO.readFile3("data/someMissingData-d3.txt");
+			data = IO.readFile3("data/someMissingData-d1.txt");
 			Task3(data);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -174,38 +174,47 @@ public class Solver {
 		}
 		data2.data = newData;
 		System.out.println(data.data.size() + " " + data2.data.size());
-		Task1(data2);
-		data2 = Task2(data2);
+		// Task1(data2);
+		for (int i = 0; i < 5; i++) {
+			data2 = new Data(data2);
+			data2 = Task2(data2);
 
-		for (List<Integer> location : missingLocations) {
-			List<Integer> state = data.data.get(location.get(0));
-			Set<String> set = new HashSet<String>();
-			Node n = data2.nodeList.get(location.get(1));
-			List<String> parents = n.parents;
-			double prob = 0;
-			if (parents.size() == 0) {
-				prob = n.prob.getProb();
-				System.out.println(n + " " + prob);
-			} else {
-				for (String parent : parents) {
-					int index = data.nodeNameList.indexOf(parent);
-					if (state.get(index) == 1) {
-						set.add(parent);
-					} else {
-						set.add("~" + parent);
+			for (List<Integer> location : missingLocations) {
+				List<Integer> state = data.data.get(location.get(0));
+				Set<String> set = new HashSet<String>();
+				Node n = data2.nodeList.get(location.get(1));
+				List<String> parents = n.parents;
+				double prob = 0;
+				if (parents.size() == 0) {
+					prob = n.prob.getProb();
+					System.out.println(n + " " + prob);
+				} else {
+					for (String parent : parents) {
+						int index = data.nodeNameList.indexOf(parent);
+						if (state.get(index) == 1) {
+							set.add(parent);
+						} else {
+							set.add("~" + parent);
+						}
+
 					}
 
+					prob = n.P.get(set).getProb();
+					System.out.print(n + " " + set + " " + prob + " ");
 				}
+				double rand = random.nextDouble();
 
-				prob = n.P.get(set).getProb();
-				System.out.println(n + " " + set + " " + prob);
+				// CHANGE THIS 0.5 to rand to fill using weighted random
+				// generator
+				if (prob > 0.5) {
+					state.set(location.get(1), 1);
+					System.out.println("Filled with 1");
+				} else {
+					state.set(location.get(1), 0);
+					System.out.println("Filled with 0");
+				}
 			}
-			double rand = random.nextDouble();
-			if (prob > rand) {
-				state.set(location.get(1), 1);
-			} else {
-				state.set(location.get(1), 0);
-			}
+			data2.data = data.data;
 		}
 		// System.out.println(data.data);
 	}
@@ -371,11 +380,17 @@ public class Solver {
 			// System.out.println(node1.name + " " + node2.name);
 			result = node1.P.get(s).getProb() * node2.prob.getProb()
 					* Math.log(node1.P.get(s).getProb() / node1.prob.getProb());
+			if (node1.P.get(s).getProb() == 0) {
+				result = 0;
+			}
 			break;
 		case 1:
 			s = createSet("~" + node2.name);
 			result = node1.P.get(s).getProb() * (1 - node2.prob.getProb())
 					* Math.log(node1.P.get(s).getProb() / node1.prob.getProb());
+			if (node1.P.get(s).getProb() == 0) {
+				result = 0;
+			}
 			break;
 		case 2:
 			s = createSet("~" + node2.name);
@@ -383,6 +398,10 @@ public class Solver {
 					* (1 - node2.prob.getProb())
 					* Math.log((1 - node1.P.get(s).getProb())
 							/ (1 - node1.prob.getProb()));
+			if (node1.P.get(s).getProb() == 1) {
+				result = 0;
+			}
+			break;
 		}
 		return result;
 	}
