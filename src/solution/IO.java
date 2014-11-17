@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
@@ -187,6 +188,7 @@ public class IO {
 		for (Node n : data.nodeList) {
 			String s = "";
 			s += (n.name + " ");
+			Collections.sort(n.parents);
 			for (String parent : n.parents) {
 				s += parent + " ";
 			}
@@ -232,6 +234,7 @@ public class IO {
 		for (Node n : data.nodeList) {
 			String s = "";
 			s += (n.name + " ");
+			Collections.sort(n.parents);
 			for (String parent : n.parents) {
 				s += parent + " ";
 			}
@@ -246,6 +249,7 @@ public class IO {
 			}
 			output.write(s.substring(0, s.length() - 1) + ls);
 			s = "";
+
 			if (numCombos > 1) {
 				for (int i = 0; i < numCombos; i++) {
 					String num = Solver.createBinaryString(n.parents.size(), i);

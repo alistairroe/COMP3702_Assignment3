@@ -1,7 +1,6 @@
 package solution;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,14 +23,16 @@ public class Solver {
 			// Task1(data);
 			// data.logLikelihood = likelihood(data);
 			// System.out.println(data.logLikelihood);
-			// IO.writeTask1(data, "cpt-d1.txt");
-			// Data data2 = IO.readPart2("data/noMissingData-d3.txt");
-			// data2 = initialiseChain(data2);
-			// /data2 = Task2(data2);
-			// IO.writeTask2(data2, "bn-d3.txt");
-			data = IO.readFile3("data/someMissingData-d1.txt");
-			data = Task3(data);
-			IO.writeTask3(data, "bn-someMissingData-d1.txt");
+			// IO.writeTask1(data, "cpt-CPTNoMissingData-d3.txt");
+			Data data2 = IO.readPart2("data/noMissingData-d3.txt");
+			data2 = initialiseChain(data2);
+			data2 = Task2(data2, 1);
+			// System.out.println(data2.logLikelihood);
+			// System.out.println(data2.score);
+			// IO.writeTask2(data2, "bn-noMissingData-d3.txt");
+			// data = IO.readFile3("data/someMissingData-d3.txt");
+			// data = Task3(data);
+			// IO.writeTask3(data, "bn-someMissingData-d3.txt");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -85,7 +86,13 @@ public class Solver {
 
 	}
 
-	public static Data Task2(Data data) {
+	/**
+	 * @param method
+	 *            0 --> greedyKruskalGraph, 1--> greedyBruteForce,
+	 *            2-->greedyStructure
+	 */
+	public static Data Task2(Data data, int method) {
+
 		for (int i = 0; i < data.nodeList.size(); i++) {
 			for (List<Integer> state : data.data) {
 				if (state.get(i) == 1) {
@@ -146,11 +153,16 @@ public class Solver {
 
 		List<Entry<Set<String>, Double>> list = sortMap(MI);
 		System.out.println(list);
-		// Data newdata = greedyStructure(data, list);
+		//
 		// System.out.println(newdata.nodeList);
-		Data newdata = greedyKruskalGraph(data, list);
-		// Data newdata = greedyBruteForce(data);
-		System.out.println(newdata.nodeList);
+		Data newdata;
+		if (method == 0) {
+			newdata = greedyKruskalGraph(data, list);
+		} else if (method == 1) {
+			newdata = greedyBruteForce(data);
+		} else {
+			newdata = greedyStructure(data, list);
+		}
 		return newdata;
 
 	}
@@ -181,9 +193,12 @@ public class Solver {
 		data2.data = newData;
 		System.out.println(data.data.size() + " " + data2.data.size());
 		// Task1(data2);
-		for (int i = 0; i < 5; i++) {
+		List<List<String>> oldFillProbabilities = new ArrayList<List<String>>();
+		long timeStart = System.currentTimeMillis();
+		long maxTime = timeStart + 180000;
+		while (System.currentTimeMillis() < maxTime) {
 			data2 = new Data(data2);
-			data2 = Task2(data2);
+			data2 = Task2(data2, 0);
 			data2.fillProbabilities = new ArrayList<List<String>>();
 			counter = 0;
 			for (List<Integer> location : missingLocations) {
@@ -207,10 +222,8 @@ public class Solver {
 					}
 
 					prob = n.P.get(set).getProb();
-					System.out.print(n + " " + set + " " + prob + " ");
+					System.out.println(n + " " + set + " " + prob + " ");
 				}
-				System.out.println(data.data);
-				double rand = random.nextDouble();
 				List<String> fillProb = new ArrayList<String>();
 				fillProb.add("H" + counter);
 				fillProb.add(String.valueOf(prob));
@@ -220,14 +233,30 @@ public class Solver {
 				// generator
 				if (prob > 0.5) {
 					state.set(location.get(1), 1);
-					System.out.println("Filled with 1");
 				} else {
 					state.set(location.get(1), 0);
-					System.out.println("Filled with 0");
 				}
 				counter++;
 			}
 			data2.data = data.data;
+			boolean same = true;
+			// System.out.println("Old: " + oldFillProbabilities);
+			// System.out.println("New: " + data2.fillProbabilities);
+			for (int j = 0; j < data2.fillProbabilities.size(); j++) {
+				if (oldFillProbabilities.size() > 0) {
+					if (data2.fillProbabilities.get(j).get(1)
+							.compareTo(oldFillProbabilities.get(j).get(1)) != 0) {
+						same = false;
+					}
+				} else {
+					same = false;
+				}
+			}
+			if (same) {
+				return data2;
+			} else {
+				oldFillProbabilities = data2.fillProbabilities;
+			}
 		}
 		return data2;
 		// System.out.println(data.nodeList.get(1));
@@ -235,11 +264,8 @@ public class Solver {
 	}
 
 	public static double likelihood(Data data) {
-		BigDecimal logSum1 = new BigDecimal(0);
 		double logSum = 0;
-		double product = 1;
 		for (List<Integer> l : data.data) {
-			double entryProduct = 1;
 			for (int i = 0; i < data.nodeList.size(); i++) {
 				Node n = data.nodeList.get(i);
 				Set<String> s = new HashSet<String>();
@@ -254,26 +280,26 @@ public class Solver {
 				if (n.parents.size() != 0) {
 					if (l.get(i) == 1) {
 						logSum += Math.log(n.P.get(s).getProb());
-						entryProduct *= n.P.get(s).getProb();
 
 					} else {
 						logSum += Math.log((1 - n.P.get(s).getProb()));
-						entryProduct *= (1 - n.P.get(s).getProb());
 					}
 				} else {
 					if (l.get(i) == 1) {
 						logSum += Math.log(n.prob.getProb());
-						entryProduct *= n.prob.getProb();
 					} else {
 						logSum += Math.log((1 - n.prob.getProb()));
-						entryProduct *= (1 - n.prob.getProb());
 					}
 
 				}
 			}
-			product *= entryProduct;
 		}
-		// System.out.println(logSum);
+		double base10Likelihood = logSum / Math.log(10);
+		double base = Math.pow(10,
+				base10Likelihood - Math.floor(base10Likelihood));
+		double exponent = Math.floor(base10Likelihood);
+		// System.out.println("Likelihood: " + base + "*10^" + exponent);
+		// System.out.println("Log likelihood: " + logSum);
 		return logSum;
 	}
 
@@ -447,7 +473,8 @@ public class Solver {
 			List<Entry<Set<String>, Double>> list) {
 		Map<String, List<String>> connectionMap = new HashMap<String, List<String>>();
 		List<List<Integer>> sparseConnectionIndexList = new ArrayList<List<Integer>>();
-		double C = 0.5;
+		// double C = 0.5;
+		double C = 0.02 * Math.pow(2, data.nodeList.size());
 		for (Entry<Set<String>, Double> e : list) {
 			List<String> nodes = new ArrayList<String>(e.getKey());
 			if (!searchMap(connectionMap, nodes.get(0), nodes.get(1))) {
@@ -553,7 +580,8 @@ public class Solver {
 		double bestAddScore = -9999999;
 		double bestRemoveScore = -9999999;
 		double bestSwapScore = -9999999;
-		double C = 0.7;
+		double C = 0.02 * Math.pow(2, data.nodeList.size());
+		// double C = 100;
 		// double bestSwitchLikelihood = -9999999;
 		Map<String, List<String>> connectionMap = new HashMap<String, List<String>>();
 		for (Node n : data2.nodeList) {
@@ -565,7 +593,9 @@ public class Solver {
 		List<Integer> bestRemovePair = new ArrayList<Integer>();
 		List<Integer> bestSwapPair = new ArrayList<Integer>();
 		// Adding
-		for (int k = 0; k < 20; k++) {
+		long timeStart = System.currentTimeMillis();
+		long maxTime = timeStart + 180000;
+		while (System.currentTimeMillis() < maxTime) {
 			boolean action = false;
 			for (int i = 0; i < data2.nodeList.size(); i++) {
 				for (int j = 0; j < data2.nodeList.size(); j++) {
@@ -734,12 +764,35 @@ public class Solver {
 				bestAddPair.clear();
 				bestSwapPair.clear();
 				Task1(data);
+
 			} else {
-				System.out.println();
+				data.logLikelihood = likelihood(data);
+				int num1 = 0;
+				for (Node n1 : data.nodeList) {
+					if (n1.parents.size() == 0) {
+						num1 += 1;
+					} else {
+						num1 += n1.P.size();
+					}
+				}
+				System.out.println(num1);
+				data.score = data.logLikelihood - C * num1;
+				System.out.println(data.nodeList);
 				return data;
 			}
 
 		}
+		data.logLikelihood = likelihood(data);
+		int num1 = 0;
+		for (Node n1 : data.nodeList) {
+			if (n1.parents.size() == 0) {
+				num1 += 1;
+			} else {
+				num1 += n1.P.size();
+			}
+		}
+		data.score = data.logLikelihood - C * num1;
+		System.out.println(data.nodeList);
 		return data;
 	}
 
