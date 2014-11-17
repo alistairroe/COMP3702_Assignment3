@@ -19,26 +19,32 @@ public class Solver {
 	public static void main(String[] args) {
 		Data data;
 		try {
+			// Part 1 - uncomment this section
 			// data = IO.readFile("data/CPTNoMissingData-d3.txt");
-			// Task1(data);
+			// Part1(data);
 			// data.logLikelihood = likelihood(data);
 			// System.out.println(data.logLikelihood);
 			// IO.writeTask1(data, "cpt-CPTNoMissingData-d3.txt");
-			Data data2 = IO.readPart2("data/noMissingData-d3.txt");
-			data2 = initialiseChain(data2);
-			data2 = Task2(data2, 1);
+
+			// Part 2 - uncomment this section
+			// Data data2 = IO.readPart2("data/noMissingData-d3.txt");
+			// data2 = initialiseChain(data2); //Only for when option 1 selected
+			// below
+			// data2 = Part2(data2, 1);
 			// System.out.println(data2.logLikelihood);
 			// System.out.println(data2.score);
 			// IO.writeTask2(data2, "bn-noMissingData-d3.txt");
-			// data = IO.readFile3("data/someMissingData-d3.txt");
-			// data = Task3(data);
-			// IO.writeTask3(data, "bn-someMissingData-d3.txt");
+
+			// Part 3 - uncomment this section
+			data = IO.readFile3("data/someMissingData-d3.txt");
+			data = Part3(data);
+			IO.writeTask3(data, "bn-someMissingData-d3.txt");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static void Task1(Data data) {
+	public static void Part1(Data data) {
 
 		// Set s = new HashSet();
 		// s.add("nC");
@@ -91,7 +97,7 @@ public class Solver {
 	 *            0 --> greedyKruskalGraph, 1--> greedyBruteForce,
 	 *            2-->greedyStructure
 	 */
-	public static Data Task2(Data data, int method) {
+	public static Data Part2(Data data, int method) {
 
 		for (int i = 0; i < data.nodeList.size(); i++) {
 			for (List<Integer> state : data.data) {
@@ -167,7 +173,7 @@ public class Solver {
 
 	}
 
-	public static Data Task3(Data data) {
+	public static Data Part3(Data data) {
 		Data data2 = new Data(data);
 		Random random = new Random();
 		List<List<Integer>> fileData = data2.data;
@@ -192,13 +198,12 @@ public class Solver {
 		}
 		data2.data = newData;
 		System.out.println(data.data.size() + " " + data2.data.size());
-		// Task1(data2);
 		List<List<String>> oldFillProbabilities = new ArrayList<List<String>>();
 		long timeStart = System.currentTimeMillis();
 		long maxTime = timeStart + 180000;
 		while (System.currentTimeMillis() < maxTime) {
 			data2 = new Data(data2);
-			data2 = Task2(data2, 0);
+			data2 = Part2(data2, 0);
 			data2.fillProbabilities = new ArrayList<List<String>>();
 			counter = 0;
 			for (List<Integer> location : missingLocations) {
@@ -209,7 +214,8 @@ public class Solver {
 				double prob = 0;
 				if (parents.size() == 0) {
 					prob = n.prob.getProb();
-					System.out.println(n + " " + prob);
+					System.out.println("Node " + n + " is 1 with probability "
+							+ prob);
 				} else {
 					for (String parent : parents) {
 						int index = data.nodeNameList.indexOf(parent);
@@ -330,7 +336,7 @@ public class Solver {
 				data2.nodeList.set(indexChild,
 						new Node(data2.nodeList.get(indexChild).name,
 								data2.nodeList.get(indexChild).parents));
-				Task1(data2);
+				Part1(data2);
 				data2.logLikelihood = likelihood(data2);
 			} else {
 				System.out.println("Prevented circularity 1 " + nodes.get(0)
@@ -343,7 +349,7 @@ public class Solver {
 				data3.nodeList.set(indexChild,
 						new Node(data3.nodeList.get(indexChild).name,
 								data3.nodeList.get(indexChild).parents));
-				Task1(data3);
+				Part1(data3);
 				data3.logLikelihood = likelihood(data3);
 			} else {
 				System.out.println("Prevented circularity 2 " + nodes.get(0)
@@ -400,7 +406,8 @@ public class Solver {
 	public static boolean searchMap(Map<String, List<String>> map, String A,
 			String B) {
 		// System.out.println(A + " " + B);
-		// Returns true if nodes are connected; false if not
+		// Returns true if nodes are connected by searching ancestors; false if
+		// not
 		List<String> exploredNodes = new ArrayList<String>();
 		List<String> queue = new ArrayList<String>();
 		queue.add(A);
@@ -520,7 +527,7 @@ public class Solver {
 						data2.nodeList.get(k).parents);
 				data2.nodeList.set(k, newNode);
 			}
-			Task1(data2);
+			Part1(data2);
 			System.out.print(data2.nodeList + "       ");
 			int num1 = 0;
 			for (Node n1 : data2.nodeList) {
@@ -536,11 +543,12 @@ public class Solver {
 				bestScore = temp;
 				bestStructure = num;
 			} else if (temp == bestScore) {
-				bestStructure = bestStructure + "," + num;
+				bestStructure = bestStructure + "," + num
+						+ " <---- TWO OPTIMAL NETWORKS";
 			}
 
 		}
-		System.out.println(bestStructure);
+		System.out.println("Best edge directions: " + bestStructure);
 		Data data3 = new Data(data);
 		for (int l = 0; l < data3.nodeList.size(); l++) {
 			data3.nodeList.get(l).parents = new ArrayList<String>();
@@ -562,7 +570,7 @@ public class Solver {
 			data3.nodeList.set(k, newNode);
 		}
 		System.out.println("Final nodelist: " + data3.nodeList);
-		Task1(data3);
+		Part1(data3);
 		data3.logLikelihood = likelihood(data3);
 		int num1 = 0;
 		for (Node n1 : data3.nodeList) {
@@ -607,7 +615,7 @@ public class Solver {
 								data2.nodeList.get(j).name, n.name)) {
 							n.parents.add(data2.nodeList.get(j).name);
 							data2.nodeList.set(i, new Node(n.name, n.parents));
-							Task1(data2);
+							Part1(data2);
 							data2.logLikelihood = likelihood(data2);
 							int num1 = 0;
 							for (Node n1 : data2.nodeList) {
@@ -633,7 +641,7 @@ public class Solver {
 					String parent = data2.nodeList.get(i).parents.remove(j);
 					data2.nodeList.set(i, new Node(data2.nodeList.get(i).name,
 							data2.nodeList.get(i).parents));
-					Task1(data2);
+					Part1(data2);
 					data2.logLikelihood = likelihood(data2);
 					int num1 = 0;
 					for (Node n1 : data2.nodeList) {
@@ -658,7 +666,7 @@ public class Solver {
 					data2.nodeList.set(indexParent,
 							new Node(data2.nodeList.get(indexParent).name,
 									data2.nodeList.get(indexParent).parents));
-					Task1(data2);
+					Part1(data2);
 					data2.logLikelihood = likelihood(data2);
 					num1 = 0;
 					for (Node n1 : data2.nodeList) {
@@ -763,7 +771,7 @@ public class Solver {
 				bestRemovePair.clear();
 				bestAddPair.clear();
 				bestSwapPair.clear();
-				Task1(data);
+				Part1(data);
 
 			} else {
 				data.logLikelihood = likelihood(data);
