@@ -14,7 +14,7 @@ import java.util.Set;
 
 public class IO {
 
-	public static Data readFile(String filename) throws IOException {
+	public static Data readPart1(String filename) throws IOException {
 		BufferedReader input = new BufferedReader(new FileReader(filename));
 		String line;
 		Scanner s;
@@ -55,7 +55,7 @@ public class IO {
 		return new Data();
 	}
 
-	public static Data readFile3(String filename) throws IOException {
+	public static Data readPart3(String filename) throws IOException {
 		BufferedReader input = new BufferedReader(new FileReader(filename));
 		String line;
 		Scanner s;
@@ -103,7 +103,7 @@ public class IO {
 		return new Data();
 	}
 
-	public static void writeTask1(Data data, String filename)
+	public static void writePart1(Data data, String filename)
 			throws IOException {
 		String ls = System.getProperty("line.separator");
 		FileWriter output = new FileWriter(filename);
@@ -180,7 +180,7 @@ public class IO {
 		return new Data();
 	}
 
-	public static void writeTask2(Data data, String filename)
+	public static void writePart2(Data data, String filename)
 			throws IOException {
 		String ls = System.getProperty("line.separator");
 		FileWriter output = new FileWriter(filename);
@@ -226,7 +226,7 @@ public class IO {
 		output.close();
 	}
 
-	public static void writeTask3(Data data, String filename)
+	public static void writePart3(Data data, String filename)
 			throws IOException {
 		String ls = System.getProperty("line.separator");
 		FileWriter output = new FileWriter(filename);
@@ -278,7 +278,7 @@ public class IO {
 
 	public static void main(String[] args) {
 		try {
-			Data data = readFile3("data/someMissingData-d1.txt");
+			Data data = readPart3("data/someMissingData-d1.txt");
 			System.out.println(data.nodeList);
 			System.out.println(data.data);
 		} catch (IOException e) {

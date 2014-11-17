@@ -36,9 +36,9 @@ public class Solver {
 			// IO.writeTask2(data2, "bn-noMissingData-d3.txt");
 
 			// Part 3 - uncomment this section
-			data = IO.readFile3("data/someMissingData-d3.txt");
+			data = IO.readPart3("data/someMissingData-d3.txt");
 			data = Part3(data);
-			IO.writeTask3(data, "bn-someMissingData-d3.txt");
+			IO.writePart3(data, "bn-someMissingData-d3.txt");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -228,7 +228,8 @@ public class Solver {
 					}
 
 					prob = n.P.get(set).getProb();
-					System.out.println(n + " " + set + " " + prob + " ");
+					System.out.println("Node " + n + " when " + set
+							+ " has probability " + prob);
 				}
 				List<String> fillProb = new ArrayList<String>();
 				fillProb.add("H" + counter);
